@@ -42,7 +42,11 @@ function callWeatherApi (city, date) {
       res.on('end', () => {
         // After all the data has been received parse the JSON for desired data
         var response = JSON.parse(body);
-        var temp = response['main']['temp'];
+        var temp = 0;
+        if (response['main'] && response['main']['temp']) {
+          var temp = response['main']['temp'];
+        }
+        
 
         var output = `La température dans la ville de ${city} est de ${temp} degrès`;
         // Resolve the promise with the output text
