@@ -14,7 +14,7 @@ function weatherWebhook(req, res) {
   if (!req.body.result) {
     return;
   }
-  // var city = req.body.result.parameters['geo-city'];
+
   var city = req.body.result.parameters['geo-city'];
   var date = '';
   if (req.body.result.parameters['date']) {
@@ -60,6 +60,7 @@ function callWeatherApi (city, date) {
 app.use(bodyParser.json())
 
 app.use(function (req, res) {
+  console.log(JSON.stringify(req.body));
   res.setHeader('Content-Type', 'text/json')
   weatherWebhook(req, res);
 })
