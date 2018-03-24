@@ -68,7 +68,7 @@ function jokeWebhook(req, res) {
 
 function callJokeApi() {
   return new Promise((resolve, reject) => {
-    console.log('Call Quote');
+    console.log('Call Joke');
     host = jokeHost;
     let path = '/jokes/random';
     console.log('API Request: ' + host + path);
@@ -107,7 +107,7 @@ function callQuoteApi() {
         if (response[0] && response[0]['title'] && response[0]['content']) {
           const author = response[0]['title'];
           const content = response[0]['content'];
-          output = "*" + content + "* de " + author;
+          output = content + " de " + author;
         }
 
         console.log(output);
