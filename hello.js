@@ -9,6 +9,7 @@ const port = 80;
 const weatherHost = 'api.openweathermap.org';
 const keyApi = '52b05c129e3947a22173de7a3de220e1';
 const jokeHost = 'api.icndb.com';
+const quoteHost = 'quotesondesign.com';
 
 
 function weatherWebhook(req, res) {
@@ -67,7 +68,7 @@ function jokeWebhook(req, res) {
 
 function callJokeApi() {
   return new Promise((resolve, reject) => {
-    console.log('Call joke');
+    console.log('Call Quote');
     host = jokeHost;
     let path = '/jokes/random';
     console.log('API Request: ' + host + path);
@@ -91,6 +92,41 @@ function callJokeApi() {
   });
 }
 
+function callQuoteApi() {
+  return new Promise((resolve, reject) => {
+    console.log('Call quote');
+    host = quoteHost;
+    let path = '/wp-json/posts?filter[orderby]=rand&filter[posts_per_page]=1&callback=';
+    console.log('API Request: ' + host + path);
+    http.get({host: host, path: path}, (res) => {
+      var body = '';
+      res.on('data', (d) => { body += d; }); // store each response chunk
+      res.on('end', () => {
+        var response = JSON.parse(body);
+        let output = '';
+        if (response[0] && response[0]['title'] && response[0]['content']) {
+          const author = response[0]['title'];
+          const content = response[0]['content'];
+          output = "*" + content + "* de " + author;
+        }
+
+        console.log(output);
+        resolve(output);
+      });
+      res.on('error', (error) => {
+        reject(error);
+      })
+    })
+  });
+}
+
+function quoteWebhook(req, res) {
+  callQuoteApi().then((output) => {
+    res.end(JSON.stringify({ 'speech': output, 'displayText': output }));
+  }).catch((error) => {
+    res.end(JSON.stringify({ 'speech': error, 'displayText': error }));
+  });
+}
 
 app.use(bodyParser.json())
 
@@ -108,8 +144,8 @@ app.use(function (req, res) {
       jokeWebhook(req, res);
     }
 
-    if (req.body.result.metadata.intentId === "419ddce4-d71e-46dc-988a-9a0b16cd11d4") {
-
+    if (req.body.result.metadata.intentId === "555335ef-bb6a-4529-b4ae-a184d3847aac") {
+      quoteWebhook(req, res);
     }
   }
   
