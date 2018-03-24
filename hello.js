@@ -103,8 +103,13 @@ app.use(function (req, res) {
       weatherWebhook(req, res);
     }
 
-    if (req.body.result.metadata.intentId === "b099578a-d93a-4c6d-bc88-092991b4430b") {
+    if (req.body.result.metadata.intentId === "b099578a-d93a-4c6d-bc88-092991b4430b" ||
+      req.body.result.metadata.intentId === "ac9ae09a-1649-4ffb-afe1-2729c95210bd") {
       jokeWebhook(req, res);
+    }
+
+    if (req.body.result.metadata.intentId === "419ddce4-d71e-46dc-988a-9a0b16cd11d4") {
+
     }
   }
   
