@@ -66,7 +66,10 @@ app.use(bodyParser.json())
 app.use(function (req, res) {
   console.log(JSON.stringify(req.body));
   res.setHeader('Content-Type', 'text/json')
-  weatherWebhook(req, res);
+  if (req.body.result.metadata && req.body.result.metadata.intentId === "ed921f35-b665-4a01-b830-d31fba3c529c") {
+    weatherWebhook(req, res);
+  }
+  
 })
 
 app.listen(port, () => console.log('Example app listening on port ' + port))
