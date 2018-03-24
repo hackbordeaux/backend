@@ -10,6 +10,7 @@ const weatherHost = 'api.openweathermap.org';
 const keyApi = '52b05c129e3947a22173de7a3de220e1';
 const jokeHost = 'api.icndb.com';
 const quoteHost = 'quotesondesign.com';
+const newHost = "newsapi.org";
 
 
 function weatherWebhook(req, res) {
@@ -128,6 +129,41 @@ function quoteWebhook(req, res) {
   });
 }
 
+function callNewsApi() {
+  return new Promise((resolve, reject) => {
+    console.log('Call news');
+    host = newHost;
+    let path = '/v2/top-headlines?country=fr&apiKey=5fdc70d402c342f0b3401c51f6ada579&pageSize=3';
+    console.log('API Request: ' + host + path);
+    http.get({host: host, path: path}, (res) => {
+      var body = '';
+      res.on('data', (d) => { body += d; }); // store each response chunk
+      res.on('end', () => {
+        var response = JSON.parse(body);
+        let output = '';
+        if (response.articles) {
+          response.articles.forEach(element => {
+            output += element.title + "\n" + element.url + " \n \n";
+          });
+        }
+        console.log(output);
+        resolve(output);
+      });
+      res.on('error', (error) => {
+        reject(error);
+      })
+    })
+  });
+}
+
+function newsWebhook(req, res) {
+  callNewsApi().then((output) => {
+    res.end(JSON.stringify({ 'speech': output, 'displayText': output }));
+  }).catch((error) => {
+    res.end(JSON.stringify({ 'speech': error, 'displayText': error }));
+  });
+}
+
 app.use(bodyParser.json())
 
 app.use(function (req, res) {
@@ -139,14 +175,18 @@ app.use(function (req, res) {
       weatherWebhook(req, res);
     }
 
-    if (req.body.result.metadata.intentId === "b099578a-d93a-4c6d-bc88-092991b4430b" ||
+    else if (req.body.result.metadata.intentId === "b099578a-d93a-4c6d-bc88-092991b4430b" ||
       req.body.result.metadata.intentId === "ac9ae09a-1649-4ffb-afe1-2729c95210bd") {
       jokeWebhook(req, res);
     }
 
-    if (req.body.result.metadata.intentId === "555335ef-bb6a-4529-b4ae-a184d3847aac" ||
+    else if (req.body.result.metadata.intentId === "555335ef-bb6a-4529-b4ae-a184d3847aac" ||
       req.body.result.metadata.intentId === "44b8ba66-e066-44f0-b7bf-247ace7066e4") {
       quoteWebhook(req, res);
+    }
+
+    else if (req.body.result.metadata.intentId === "5047edb6-8d62-4d91-b302-c22c43b13aae") {
+      newsWebhook(req, res);
     }
   }
   
