@@ -129,11 +129,11 @@ function quoteWebhook(req, res) {
   });
 }
 
-function callNewsApi() {
+function callNewsApi(number) {
   return new Promise((resolve, reject) => {
     console.log('Call news');
     host = newHost;
-    let path = '/v2/top-headlines?country=fr&apiKey=5fdc70d402c342f0b3401c51f6ada579&pageSize=3';
+    let path = '/v2/top-headlines?country=fr&apiKey=5fdc70d402c342f0b3401c51f6ada579&pageSize=' + number;
     console.log('API Request: ' + host + path);
     http.get({host: host, path: path}, (res) => {
       var body = '';
@@ -157,7 +157,14 @@ function callNewsApi() {
 }
 
 function newsWebhook(req, res) {
-  callNewsApi().then((output) => {
+
+  let number = 3;
+  if (req.body.result.parameters.number) {
+    number = req.body.result.parameters.number;
+  }
+
+
+  callNewsApi(number).then((output) => {
     res.end(JSON.stringify({ 'speech': output, 'displayText': output }));
   }).catch((error) => {
     res.end(JSON.stringify({ 'speech': error, 'displayText': error }));
