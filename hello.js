@@ -144,7 +144,8 @@ app.use(function (req, res) {
       jokeWebhook(req, res);
     }
 
-    if (req.body.result.metadata.intentId === "555335ef-bb6a-4529-b4ae-a184d3847aac") {
+    if (req.body.result.metadata.intentId === "555335ef-bb6a-4529-b4ae-a184d3847aac" ||
+      req.body.result.metadata.intentId === "44b8ba66-e066-44f0-b7bf-247ace7066e4") {
       quoteWebhook(req, res);
     }
   }
