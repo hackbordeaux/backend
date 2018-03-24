@@ -8,13 +8,10 @@ const hostname = '127.0.0.1';
 const port = 80;
 const weatherHost = 'api.openweathermap.org';
 const keyApi = '52b05c129e3947a22173de7a3de220e1';
+const jokeHost = 'api.icndb.com';
 
 
 function weatherWebhook(req, res) {
-  if (!req.body.result) {
-    return;
-  }
-
   var city = req.body.result.parameters['geo-city'];
   var date = '';
   if (req.body.result.parameters['date']) {
@@ -60,14 +57,55 @@ function callWeatherApi (city, date) {
   });
 }
 
+function jokeWebhook(req, res) {
+  callJokeApi().then((output) => {
+    res.end(JSON.stringify({ 'speech': output, 'displayText': output }));
+  }).catch((error) => {
+    res.end(JSON.stringify({ 'speech': error, 'displayText': error }));
+  });
+}
+
+function callJokeApi() {
+  return new Promise((resolve, reject) => {
+    console.log('Call joke');
+    host = jokeHost;
+    let path = '/jokes/random';
+    console.log('API Request: ' + host + path);
+    http.get({host: host, path: path}, (res) => {
+      var body = '';
+      res.on('data', (d) => { body += d; }); // store each response chunk
+      res.on('end', () => {
+        var response = JSON.parse(body);
+        let output = '';
+        if (response['value'] && response['value']['joke']) {
+          output = response['value']['joke'];
+        }
+
+        console.log(output);
+        resolve(output);
+      });
+      res.on('error', (error) => {
+        reject(error);
+      })
+    })
+  });
+}
+
 
 app.use(bodyParser.json())
 
 app.use(function (req, res) {
   console.log(JSON.stringify(req.body));
   res.setHeader('Content-Type', 'text/json')
-  if (req.body.result && req.body.result.metadata && req.body.result.metadata.intentId === "ed921f35-b665-4a01-b830-d31fba3c529c") {
-    weatherWebhook(req, res);
+
+  if (req.body.result && req.body.result.metadata) {
+    if (req.body.result.metadata.intentId === "ed921f35-b665-4a01-b830-d31fba3c529c") {
+      weatherWebhook(req, res);
+    }
+
+    if (req.body.result.metadata.intentId === "b099578a-d93a-4c6d-bc88-092991b4430b") {
+      jokeWebhook(req, res);
+    }
   }
   
 })
