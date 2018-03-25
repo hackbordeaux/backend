@@ -236,7 +236,8 @@ app.use(function (req, res) {
   res.setHeader('Content-Type', 'text/json')
 
   if (req.body.result && req.body.result.metadata) {
-    if (req.body.result.metadata.intentId === "ed921f35-b665-4a01-b830-d31fba3c529c") {
+    if (req.body.result.metadata.intentId === "ed921f35-b665-4a01-b830-d31fba3c529c" ||
+      req.body.result.metadata.intentId === "6d468769-6fad-4192-b2ac-45ed5fcfed4b") {
       weatherWebhook(req, res);
     }
 
