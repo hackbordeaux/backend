@@ -11,6 +11,8 @@ const keyApi = '52b05c129e3947a22173de7a3de220e1';
 const jokeHost = 'api.icndb.com';
 const quoteHost = 'quotesondesign.com';
 const newHost = "newsapi.org";
+const twitterHost = "api.twitter.com";
+const slackHost = "slack.com";
 
 
 function weatherWebhook(req, res) {
@@ -48,6 +50,9 @@ function callWeatherApi (city, date) {
         
 
         var output = `La température dans la ville de ${city} est de ${temp} degrès`;
+        if (date) {
+          output = `La température le ${date} dans la ville ${city} est de ${temp} degrès`;
+        }
         // Resolve the promise with the output text
         console.log(output);
         resolve(output);
@@ -177,6 +182,48 @@ function newsWebhook(req, res) {
   });
 }
 
+
+function callDefisApi(number, category) {
+  return new Promise((resolve, reject) => {
+    console.log('Call news');
+    host = slackHost;
+    let path = '/api/conversations.members?token=xoxp-335013515025-335526524532-334933579312-df65f7d326db3f120d9e9c16ac7b684c&channel=C9UQK8H24&pretty=1';
+
+    console.log('API Request: ' + host + path);
+    http.get({host: host, path: path}, (res) => {
+      var body = '';
+      res.on('data', (d) => {
+        body += d;
+      }); // store each response chunk
+      res.on('end', () => {
+        var response = JSON.parse(body);
+        let output = '';
+        if (response.members) {
+          const lenght = response.members.lenght();
+          const data = response.members[Math.floor(Math.random() * Math.floor(lenght-1))];
+          
+        }
+        console.log(output);
+        resolve(output);
+      });
+      res.on('error', (error) => {
+        reject(error);
+      })
+    })
+  });
+}
+
+function defisWebhook(req, res) {
+  app.use(bodyParser.urlencoded({extended: false}));
+  res.setHeader('Content-Type', 'text/x-www-form-urlencoded')
+  callDefisApi().then((output) => {
+    res.end(JSON.stringify({ 'speech': output, 'displayText': output }));
+  }).catch((error) => {
+    res.end(JSON.stringify({ 'speech': error, 'displayText': error }));
+  });
+}
+
+
 app.use(bodyParser.json())
 
 app.use(function (req, res) {
@@ -200,6 +247,10 @@ app.use(function (req, res) {
 
     else if (req.body.result.metadata.intentId === "5047edb6-8d62-4d91-b302-c22c43b13aae") {
       newsWebhook(req, res);
+    }
+
+    else if (req.body.result.metadata.intentId === "51b0637e-c1ef-445d-8974-58a0f9fca9b3") {
+      defisWebhook(req, res);
     }
   }
   
