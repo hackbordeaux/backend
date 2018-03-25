@@ -6,7 +6,7 @@ var app = express();
 
 const hostname = '127.0.0.1';
 const port = 80;
-const weatherHost = 'api.openweathermap.org';
+const weatherHost = 'api.worldweatheronline.com';
 const keyApi = '52b05c129e3947a22173de7a3de220e1';
 const jokeHost = 'api.icndb.com';
 const quoteHost = 'quotesondesign.com';
@@ -33,7 +33,10 @@ function weatherWebhook(req, res) {
 function callWeatherApi (city, date) {
   return new Promise((resolve, reject) => {
     // Create the path for the HTTP request to get the weather
-    var path = '/data/2.5/weather?q=' + city + '&APPID=' + keyApi + '&units=metric';
+    let path = '/premium/v1/weather.ashx?key=45feb3b05fe348c892e20849182503&q=' + city + '&format=json&num_of_days=1&lang=fr';
+    if (date) {
+      path += '&date=' + date;
+    }
     console.log('API Request: ' + weatherHost + path);
     // Make the HTTP request to get the weather
     host = weatherHost;
@@ -43,15 +46,17 @@ function callWeatherApi (city, date) {
       res.on('end', () => {
         // After all the data has been received parse the JSON for desired data
         var response = JSON.parse(body);
-        var temp = 0;
-        if (response['main'] && response['main']['temp']) {
-          var temp = response['main']['temp'];
+        var tempMax = 0;
+        let tempMin = 0;
+        if (response.data.weather && response.data.weather[0].maxtempC) {
+          tempMax = response.data.weather[0].maxtempC;
+          tempMin = response.data.weather[0].mintempC;
         }
         
 
-        var output = `La température dans la ville de ${city} est de ${temp} degrès`;
+        var output = `La température dans la ville de ${city} est de minimum ${tempMin} degrès et maximum ${tempMax} degrès`;
         if (date) {
-          output = `La température le ${date} dans la ville ${city} est de ${temp} degrès`;
+          output = `La température le ${date} dans la ville ${city} est de minimum ${tempMin} degrès et maximum ${tempMax} degrès`;
         }
         // Resolve the promise with the output text
         console.log(output);
