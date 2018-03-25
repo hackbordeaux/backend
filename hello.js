@@ -1,6 +1,7 @@
-const http = require('http');
+var http = require('follow-redirects').http;
 var express = require('express');
 var bodyParser = require('body-parser')
+var compression = require('compression');
 
 var app = express();
 
@@ -192,7 +193,7 @@ function callDefisApi(number, category) {
   return new Promise((resolve, reject) => {
     console.log('Call news');
     host = slackHost;
-    let path = '/api/conversations.members?token=xoxp-335013515025-335526524532-334933579312-df65f7d326db3f120d9e9c16ac7b684c&channel=C9UQK8H24&pretty=1';
+    let path = '/api/conversations.members?token=xoxp-335013515025-335526524532-335653885524-e440a740b1ed18b4cfbf5d416c9a43e8&channel=C9UQK8H24&pretty=1';
 
     console.log('API Request: ' + host + path);
     http.get({host: host, path: path}, (res) => {
@@ -204,12 +205,48 @@ function callDefisApi(number, category) {
         var response = JSON.parse(body);
         let output = '';
         if (response.members) {
-          const lenght = response.members.lenght();
-          const data = response.members[Math.floor(Math.random() * Math.floor(lenght-1))];
+          const lenght = response.members.length;
+          const user = response.members[Math.floor(Math.random() * Math.floor(lenght-1))];
+
+          console.log('Envoie message pour : ' + user);
+          
+          path = '/api/im.open?token=xoxp-335013515025-335526524532-335653885524-e440a740b1ed18b4cfbf5d416c9a43e8&pretty=1&user=' + user;
+          console.log('API Request: ' + host + path);
+          http.get({host: host, path: path}, (res) => {
+            body = '';
+            res.on('data', (d) => {
+              body += d;
+            });
+            res.on('end', () => {
+              response = JSON.parse(body);
+              if (response.channel) {
+                const idChannel = response.channel.id;
+                console.log('Id channel : ' + idChannel);
+
+                path = '/api/chat.postMessage?token=xoxp-335013515025-335526524532-335653885524-e440a740b1ed18b4cfbf5d416c9a43e8&channel=' + idChannel + '&text=Salut%20on%20ta%20lanc%C3%A9%20un%20d%C3%A9fis%20de%20pause%20caf%C3%A9%20!&as_user=false&username=HappyBot&pretty=1';
+                console.log('API Request' + host + path);
+                http.get({host: host, path: path}, (res) => {
+                  body = '';
+                  res.on('data', (d) => {
+                    body += d;
+                  });
+                  res.on('end', () => {
+                    output = 'HappyBot a invité une personne pour une pause café ! ;)';
+                    console.log(output);
+                    resolve(output);
+                  });
+                  res.on('error', (error) => {
+                    reject(error);
+                  })
+                });
+              }
+            });
+            res.on('error', (error) => {
+              reject(error);
+            })
+          });
           
         }
-        console.log(output);
-        resolve(output);
       });
       res.on('error', (error) => {
         reject(error);
@@ -219,8 +256,8 @@ function callDefisApi(number, category) {
 }
 
 function defisWebhook(req, res) {
-  app.use(bodyParser.urlencoded({extended: false}));
-  res.setHeader('Content-Type', 'text/x-www-form-urlencoded')
+  // app.use(bodyParser.urlencoded({extended: false}));
+  res.setHeader('Content-Type', 'text/json')
   callDefisApi().then((output) => {
     res.end(JSON.stringify({ 'speech': output, 'displayText': output }));
   }).catch((error) => {
@@ -230,6 +267,7 @@ function defisWebhook(req, res) {
 
 
 app.use(bodyParser.json())
+app.use(compression());
 
 app.use(function (req, res) {
   console.log(JSON.stringify(req.body));
